@@ -15,6 +15,7 @@ const Footer = () => {
             height={38}
           ></Image>
         </Link>
+        <p> Project by Ali Yahya Osman</p>
       </div>
     </footer>
   );
