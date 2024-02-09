@@ -127,6 +127,7 @@ const EventForm = ({ userId, type }: EventFormProps) => {
             )}
           />
         </div>
+        <div className='flex flex-col gap-5 md:flex-row'></div>
 
         <Button type='submit'>Submit</Button>
       </form>
