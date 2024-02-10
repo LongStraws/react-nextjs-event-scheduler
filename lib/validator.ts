@@ -13,8 +13,9 @@ export const eventFormSchema = z.object({
   imageUrl: z.string().url("Invalid URL"),
   startDateTime: z.date(),
   endDateTime: z.date(),
-  categoryId: z.string().min(3, "Category must be at least 3 characters"),
-  price: z.string().min(3, "Price must be at least 3 characters"),
+  categoryId:
+    z.string() /* .min(3, "Category must be at least 3 characters") */,
+  price: z.string(),
   isFree: z.boolean(),
   url: z.string().url("Invalid URL"),
 });
