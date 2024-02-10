@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { ICategory } from "@/lib/mongodb/database/models/category.models";
+import { ICategory } from "@/lib/mongodb/database/models/category.model";
 import {
   AlertDialog,
   AlertDialogAction,

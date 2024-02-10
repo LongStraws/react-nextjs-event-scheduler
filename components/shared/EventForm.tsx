@@ -18,7 +18,6 @@ import { eventFormSchema } from "@/lib/validator";
 import { z } from "zod";
 import { eventDefaultValues } from "@/constants";
 import Dropdown from "./Dropdown";
-import DatePickerDemo from "./DatePicker";
 import { Textarea } from "@/components/ui/textarea";
 import FileUploader from "./FileUploader";
 import { useState } from "react";
@@ -28,6 +27,9 @@ import DatePicker from "react-datepicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import "react-datepicker/dist/react-datepicker.css";
 import { IEvent } from "@/lib/mongodb/database/models/event.model";
+import { create } from "domain";
+import { useRouter } from "next/navigation";
+import { createEvent } from "@/lib/actions/event.actions";
 
 type EventFormProps = {
   userId: string;
@@ -37,7 +39,7 @@ type EventFormProps = {
 };
 
 const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
-  //const [files, setFiles] = useState<File[]>([]);
+  const router = useRouter();
   const initialValues =
     event && type === "Update"
       ? {
@@ -47,9 +49,8 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
         }
       : eventDefaultValues;
 
-  const [content, setContent] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  //const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: initialValues,
@@ -88,9 +89,27 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
-    const fileId = await handleFileUpload(file!);
-    console.log(fileId);
-    console.log(values);
+    console.log(userId);
+    if (file) {
+      values.imageUrl = await handleFileUpload(file);
+    }
+
+    if (type === "Create") {
+      try {
+        const newEvent = await createEvent({
+          event: { ...values },
+          userId,
+          path: "/profile",
+        });
+
+        if (newEvent) {
+          form.reset();
+          router.push(`/events/${newEvent._id}`);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
 
   return (
@@ -170,7 +189,6 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
                     previewUrl={field.value}
                     file={file}
                     setFile={setFile}
-                    setPreviewUrl={setPreviewUrl}
                   />
                 </FormControl>
 

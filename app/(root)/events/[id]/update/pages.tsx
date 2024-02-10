@@ -1,6 +1,5 @@
 import EventForm from "@/components/shared/EventForm";
 import { auth } from "@clerk/nextjs";
-import { User } from "lucide-react";
 
 const UpdateEvent = () => {
   const { sessionClaims } = auth();

@@ -5,7 +5,6 @@ type FileUploaderProps = {
   previewUrl: string;
   file: File | null;
   setFile: Dispatch<SetStateAction<File | null>>;
-  setPreviewUrl: Dispatch<SetStateAction<string | null>>;
 };
 const FileUploader = ({
   onFieldChange,
