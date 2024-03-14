@@ -15,17 +15,17 @@ const FileUploader = ({
   const onDrop = (acceptedFile: File) => {
     setFile(acceptedFile);
     onFieldChange(convertFileToUrl(acceptedFile));
-    console.log(previewUrl);
+    console.log(previewUrl, "fileUploader previewUrl");
   };
   return (
     <>
-      {previewUrl && file && (
+      {previewUrl && (
         <div className='w-20 h-20 mt-4'>
-          {file.type.startsWith("image/") ? (
+          {file?.type.startsWith("image/") ? (
             <img src={previewUrl} alt='Selected file' />
-          ) : file.type.startsWith("video/") ? (
-            <video src={previewUrl} controls />
-          ) : null}
+          ) : (
+            <img src={previewUrl} />
+          )}
         </div>
       )}
       <label className='flex'>

@@ -29,7 +29,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { IEvent } from "@/lib/mongodb/database/models/event.model";
 import { create } from "domain";
 import { useRouter } from "next/navigation";
-import { createEvent } from "@/lib/actions/event.actions";
+import { createEvent, updateEvent } from "@/lib/actions/event.actions";
 
 type EventFormProps = {
   userId: string;
@@ -50,7 +50,6 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
       : eventDefaultValues;
 
   const [file, setFile] = useState<File | null>(null);
-  //const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: initialValues,
@@ -89,11 +88,12 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
-    console.log(userId);
     if (file) {
       values.imageUrl = await handleFileUpload(file);
     }
 
+    let uploadedImageUrl = values.imageUrl;
+    console.log(uploadedImageUrl, "uploadedImageUrl");
     if (type === "Create") {
       try {
         const newEvent = await createEvent({
@@ -108,6 +108,28 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
         }
       } catch (error) {
         console.error(error);
+      }
+    }
+
+    if (type === "Update") {
+      if (!eventId) {
+        router.back();
+        return;
+      }
+
+      try {
+        const updatedEvent = await updateEvent({
+          userId,
+          event: { ...values, imageUrl: uploadedImageUrl, _id: eventId },
+          path: `/events/${eventId}`,
+        });
+
+        if (updatedEvent) {
+          form.reset();
+          router.push(`/events/${updatedEvent._id}`);
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
   }

@@ -7,6 +7,15 @@ import Event from "@/lib/mongodb/database/models/event.model";
 import User from "@/lib/mongodb/database/models/user.model";
 import Category from "@/lib/mongodb/database/models/category.model";
 import { handleError } from "@/lib/utils";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+
+const s3Client = new S3Client({
+  region: process.env.AWS_S3_REGION!,
+  credentials: {
+    accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY!,
+  },
+});
 
 import {
   CreateEventParams,
@@ -73,6 +82,7 @@ export async function updateEvent({ userId, event, path }: UpdateEventParams) {
     await connectToDatabase();
 
     const eventToUpdate = await Event.findById(event._id);
+
     if (!eventToUpdate || eventToUpdate.organizer.toHexString() !== userId) {
       throw new Error("Unauthorized or event not found");
     }
@@ -82,7 +92,20 @@ export async function updateEvent({ userId, event, path }: UpdateEventParams) {
       { ...event, category: event.categoryId },
       { new: true }
     );
-    revalidatePath(path);
+
+    if (eventToUpdate.imageUrl != event.imageUrl) {
+      const url = eventToUpdate.imageUrl;
+      const key = url.split("/").slice(-1)[0];
+      console.log(url, " URL ", key, " key ");
+      const deleteParams = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME!,
+        Key: key,
+      };
+
+      await s3Client.send(new DeleteObjectCommand(deleteParams));
+    }
+
+    if (updatedEvent) revalidatePath(path);
 
     return JSON.parse(JSON.stringify(updatedEvent));
   } catch (error) {
@@ -96,6 +119,17 @@ export async function deleteEvent({ eventId, path }: DeleteEventParams) {
     await connectToDatabase();
 
     const deletedEvent = await Event.findByIdAndDelete(eventId);
+    if (deletedEvent) {
+      const url = deletedEvent.imageUrl;
+      const key = url.split("/").slice(-1)[0];
+      const deleteParams = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME!,
+        Key: key,
+      };
+
+      await s3Client.send(new DeleteObjectCommand(deleteParams));
+    }
+
     if (deletedEvent) revalidatePath(path);
   } catch (error) {
     handleError(error);

@@ -13,6 +13,7 @@ const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
 
   const userId = sessionClaims?.userId as string;
   const event = await getEventById(id);
+  console.log(event.imageUrl, " URL of update page ");
 
   return (
     <>
